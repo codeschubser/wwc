@@ -69,8 +69,7 @@ void loop()
     Serial.println("[Sensor data] Successfully sent.");
   }
 
-  //goToBed(minutes2sleep); // Sending into deep sleep
-  delay(10000);
+  goToBed(minutes2sleep); // Sending into deep sleep
 }
 
 void getSensor()
