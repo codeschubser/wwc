@@ -11,7 +11,7 @@
 BME280I2C bme;
 
 // configuration - begin
-String userAgent = "Wireless Weather Station";
+String userAgent = "Wireless Weather Client";
 String clientVer = "0.1.1";
 
 char* apiUrl = "YOUR_API_URL";
