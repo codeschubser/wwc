@@ -57,7 +57,9 @@ void loop()
 {
   getSensor();            // Init the sensor
   getSensorData();        // Get data from sensors
-
+  Serial.println("Value");
+  Serial.println(analogRead(A0)*3.3/1023/0.636);
+  delay(10000);
   splashScreen();         // Show configuration
 
   if (!sendSensorData())  // Send data to API
