@@ -1,0 +1,2 @@
+# wwc
+Wireless Weather Client
