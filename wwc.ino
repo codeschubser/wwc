@@ -24,13 +24,18 @@ int minutes2sleep = 5;
 uint32_t chipID = ESP.getChipId();
 char* sensor = "UNKNOWN";
 
+const float resistor1 = 220;
+const float resistor2 = 330;
+const float voltageDivider = (resistor1/resistor2);
+const float longitude = 54.15870000070463;
+const float latitude = 12.01300027467079;
+
 float temperature;
 float humidity;
 float pressure;
 float dewpoint;
 float heatindex;
-float lon;
-float lat;
+float vIn;
 
 /**
    Le Setup
@@ -57,9 +62,6 @@ void loop()
 {
   getSensor();            // Init the sensor
   getSensorData();        // Get data from sensors
-  Serial.println("Value");
-  Serial.println(analogRead(A0)*3.3/1023/0.636);
-  delay(10000);
   splashScreen();         // Show configuration
 
   if (!sendSensorData())  // Send data to API
@@ -120,42 +122,12 @@ void getSensorData()
   dewpoint = EnvironmentCalculations::DewPoint(temperature, humidity);
   heatindex = EnvironmentCalculations::HeatIndex(temperature, humidity);
 
+  vIn = (analogRead(A0) * 3.3 / 1023 / voltageDivider);
+
   if (true == debug)
   {
     Serial.println("done.");
   }
-}
-
-void splashScreen()
-{
-  Serial.println("#################################################");
-  Serial.printf("# Chip ID:\t\t%08X\n", ESP.getChipId());
-  Serial.printf("# Flash Chip ID:\t%08X\n", ESP.getFlashChipId());
-  Serial.printf("# Flash Chip Speed:\t%d (Hz)\n", ESP.getFlashChipSpeed());
-  Serial.printf("# Flash Chip Size:\t%d (bytes)\n", ESP.getFlashChipSize());
-  Serial.printf("# Flash Heap Size:\t%d (bytes)\n", ESP.getFreeHeap());
-  Serial.println("# --------------------------------------------- #");
-  Serial.print("# Debug:\t\t");
-  Serial.printf("%s\n", (true == debug ? "true" : "false"));
-  Serial.printf("# Delay:\t\t%d ", minutes2sleep);
-  Serial.println("minute(s)");
-  Serial.println("# --------------------------------------------- #");
-  Serial.printf("# WiFi SSID:\t\t%s\n", WiFi.SSID().c_str());
-  Serial.print("# WiFi MAC:\t\t");
-  Serial.println(WiFi.macAddress());
-  Serial.printf("# WiFi RSSI:\t\t%d dBm\n", WiFi.RSSI());
-  Serial.printf("# WiFi Hostname:\t%s\n", WiFi.hostname().c_str());
-  Serial.print("# WiFi IP Address:\t");
-  Serial.println(WiFi.localIP());
-  Serial.printf("# API Url:\t\t%s\n", apiUrl);
-  Serial.println("# --------------------------------------------- #");
-  Serial.printf("# Sensor:\t\t%s\n", sensor);
-  Serial.printf("# Temperature:\t\t%f °C\n", temperature);
-  Serial.printf("# Humidity:\t\t%f %%\n", humidity);
-  Serial.printf("# Pressure:\t\t%f hpa\n", pressure);
-  Serial.printf("# Dew point:\t\t%f °C\n", dewpoint);
-  Serial.printf("# Heat index:\t\t%f\n", heatindex);
-  Serial.println("#################################################");
 }
 
 /**
@@ -240,7 +212,14 @@ bool sendSensorData()
 {
   HTTPClient http;
   int httpCode = -1;
-  String payload = "temp=" + String(temperature) + "&humidity=" + String(humidity) + "&pressure=" + String(pressure) + "&dewpoint=" + String(dewpoint) + "&heatindex=" + String(heatindex);
+  String payload = "temp=" + String(temperature);
+  payload =+ "&humidity=" + String(humidity);
+  payload =+ "&pressure=" + String(pressure);
+  payload =+ "&dewpoint=" + String(dewpoint);
+  payload =+ "&heatindex=" + String(heatindex);
+  payload =+ "&lon=" + String(longitude);
+  payload =+ "&lat=" + String(latitude);
+  payload =+ "&voltage" + String(vIn);
 
   if (true == debug)
   {
@@ -286,4 +265,39 @@ void blinkBuildInLed(int flashtimes, int delaySeconds)
     digitalWrite(LED_BUILTIN, HIGH);
     delay(delaySeconds);
   }
+}
+
+void splashScreen()
+{
+  Serial.println("#################################################");
+  Serial.printf("# Chip ID:\t\t%08X\n", ESP.getChipId());
+  Serial.printf("# Flash Chip ID:\t%08X\n", ESP.getFlashChipId());
+  Serial.printf("# Flash Chip Speed:\t%d (Hz)\n", ESP.getFlashChipSpeed());
+  Serial.printf("# Flash Chip Size:\t%d (bytes)\n", ESP.getFlashChipSize());
+  Serial.printf("# Flash Heap Size:\t%d (bytes)\n", ESP.getFreeHeap());
+  Serial.println("# --------------------------------------------- #");
+  Serial.print("# Debug:\t\t");
+  Serial.printf("%s\n", (true == debug ? "true" : "false"));
+  Serial.printf("# Delay:\t\t%d ", minutes2sleep);
+  Serial.println("minute(s)");
+  Serial.println("# --------------------------------------------- #");
+  Serial.printf("# WiFi SSID:\t\t%s\n", WiFi.SSID().c_str());
+  Serial.print("# WiFi MAC:\t\t");
+  Serial.println(WiFi.macAddress());
+  Serial.printf("# WiFi RSSI:\t\t%d dBm\n", WiFi.RSSI());
+  Serial.printf("# WiFi Hostname:\t%s\n", WiFi.hostname().c_str());
+  Serial.print("# WiFi IP Address:\t");
+  Serial.println(WiFi.localIP());
+  Serial.printf("# API Url:\t\t%s\n", apiUrl);
+  Serial.println("# --------------------------------------------- #");
+  Serial.printf("# Sensor:\t\t%s\n", sensor);
+  Serial.printf("# Longitude:\t\t%f\n", longitude);
+  Serial.printf("# Latitude:\t\t%f\n", latitude);
+  Serial.printf("# Temperature:\t\t%f °C\n", temperature);
+  Serial.printf("# Humidity:\t\t%f %%\n", humidity);
+  Serial.printf("# Pressure:\t\t%f hpa\n", pressure);
+  Serial.printf("# Dew point:\t\t%f °C\n", dewpoint);
+  Serial.printf("# Heat index:\t\t%f\n", heatindex);
+  Serial.printf("# Voltage:\t\t%f V\n", vIn);
+  Serial.println("#################################################");
 }
